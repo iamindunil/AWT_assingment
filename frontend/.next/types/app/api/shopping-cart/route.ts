@@ -1,4 +1,4 @@
-// File: G:\GitHub\online-book-manager\frontend\app\api\shopping-cart\route.ts
+// File: G:\GitHub\AWT_assingment\frontend\app\api\shopping-cart\route.ts
 import * as entry from '../../../../../app/api/shopping-cart/route.js'
 import type { NextRequest } from 'next/server.js'
 

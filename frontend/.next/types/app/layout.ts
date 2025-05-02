@@ -1,4 +1,4 @@
-// File: G:\GitHub\online-book-manager\frontend\app\layout.tsx
+// File: G:\GitHub\AWT_assingment\frontend\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
