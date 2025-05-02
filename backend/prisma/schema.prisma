@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model checkout_history {
+  email                  String
+  book_isbn              String
+  total_price            Decimal  @db.Decimal(10, 2)
+  qty                    Int
+  checkout_date_and_time DateTime @db.Timestamp(6)
+  user                   user     @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([email, book_isbn, checkout_date_and_time])
+}
+
+model email_verifications {
+  email String @id
+  code  String
+  user  user   @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model shipping {
+  email      String @id
+  address    String
+  postalcode String
+  country    String
+  user       user   @relation(fields: [email], references: [email], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user {
+  name                String
+  email               String               @id
+  phone_number        String?
+  password            String
+  checkout_history    checkout_history[]
+  email_verifications email_verifications?
+  shipping            shipping?
+}

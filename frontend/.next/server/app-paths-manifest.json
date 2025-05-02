@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/books/page": "app/books/page.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/cart/page": "app/cart/page.js",
+  "/auth/register/page": "app/auth/register/page.js",
+  "/checkout/page": "app/checkout/page.js",
+  "/api/shopping-cart/route": "app/api/shopping-cart/route.js",
+  "/api/books/route": "app/api/books/route.js",
+  "/api/user/profile/route": "app/api/user/profile/route.js"
+}
