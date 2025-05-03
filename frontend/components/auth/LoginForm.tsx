@@ -36,6 +36,8 @@ export function LoginForm() {
     const redirect = searchParams.get('redirect');
     if (redirect) {
       setRedirectPath(`/${redirect}`);
+    } else {
+      setRedirectPath('/');
     }
   }, [searchParams]);
 
