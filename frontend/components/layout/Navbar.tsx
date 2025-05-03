@@ -34,7 +34,7 @@ export default function Navbar() {
             <Link href="/books" className="text-gray-700 hover:text-primary-600">
               Books
             </Link>
-            <Link href="/categories" className="text-gray-700 hover:text-primary-600">
+            <Link href="/categories/All" className="text-gray-700 hover:text-primary-600">
               Categories
             </Link>
             <form onSubmit={handleSearch} className="relative">
