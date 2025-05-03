@@ -61,10 +61,10 @@ router.post('/verify', async (req, res) => {
       return res.status(400).json({ error: 'Invalid code' });
     }
 
-    // Delete the code after successful verification
+    // Delete the verification code
     await prisma.email_verifications.delete({ where: { email } });
 
-    res.json({ message: 'Email verified' });
+    res.json({ message: 'Email verified successfully', verified: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

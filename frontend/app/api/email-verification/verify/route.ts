@@ -5,21 +5,44 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { email, code } = body;
     
-    // In a real implementation, you would verify the email and code with your backend
-    // For now, we'll just mock a successful verification
+    // Validate required fields
+    if (!email || !code) {
+      return NextResponse.json(
+        { message: 'Email and verification code are required', success: false, verified: false },
+        { status: 400 }
+      );
+    }
     
-    // Mock delay to simulate backend processing
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Forward the verification request to the backend
+    const response = await fetch('http://localhost:5000/email-verification/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, code }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return NextResponse.json(
+        { 
+          message: data.error || 'Verification failed',
+          verified: false
+        },
+        { status: response.status }
+      );
+    }
     
     // Return success response
     return NextResponse.json({ 
-      message: 'Email verified successfully'
+      message: data.message || 'Email verified successfully',
+      verified: data.verified !== undefined ? data.verified : true
     });
-    
   } catch (error) {
     console.error('Email verification error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', verified: false },
       { status: 500 }
     );
   }

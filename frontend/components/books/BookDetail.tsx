@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { FaShoppingCart, FaArrowLeft } from 'react-icons/fa';
 import Loader from '@/components/ui/Loader';
@@ -29,6 +30,7 @@ export default function BookDetail({ id }: BookDetailProps) {
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchBook = async () => {

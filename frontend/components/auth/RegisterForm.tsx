@@ -17,13 +17,19 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+const verificationSchema = z.object({
+  code: z.string().min(6, 'Please enter the 6-digit verification code'),
+});
+
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type VerificationFormValues = z.infer<typeof verificationSchema>;
 
 export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const router = useRouter();
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, verifyEmail } = useAuth();
   
   const {
     register,
@@ -39,12 +45,24 @@ export function RegisterForm() {
     },
   });
 
+  const {
+    register: registerVerification,
+    handleSubmit: handleVerificationSubmit,
+    formState: { errors: verificationErrors },
+  } = useForm<VerificationFormValues>({
+    resolver: zodResolver(verificationSchema),
+    defaultValues: {
+      code: '',
+    },
+  });
+
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       setIsSubmitting(true);
       const success = await registerUser(data.name, data.email, data.password);
       
       if (success) {
+        setRegisteredEmail(data.email);
         setVerificationSent(true);
       }
     } catch (error) {
@@ -54,19 +72,56 @@ export function RegisterForm() {
     }
   };
 
+  const onVerificationSubmit = async (data: VerificationFormValues) => {
+    try {
+      setIsSubmitting(true);
+      const success = await verifyEmail(registeredEmail, data.code);
+      
+      if (success) {
+        router.push('/auth/login');
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (verificationSent) {
     return (
-      <div className="text-center py-4">
-        <h2 className="text-xl font-semibold mb-2">Verification Email Sent!</h2>
-        <p className="mb-4">
-          We've sent a verification email to your address. Please check your inbox and verify your account.
-        </p>
-        <button
-          onClick={() => router.push('/auth/login')}
-          className="btn-primary w-full"
-        >
-          Go to Login
-        </button>
+      <div className="space-y-4">
+        <div className="text-center py-4">
+          <h2 className="text-xl font-semibold mb-2">Verification Code Sent!</h2>
+          <p className="mb-4">
+            We've sent a verification code to {registeredEmail}. Please enter the code below to verify your account.
+          </p>
+        </div>
+
+        <form onSubmit={handleVerificationSubmit(onVerificationSubmit)} className="space-y-4">
+          <div>
+            <label htmlFor="code" className="block text-gray-700 font-medium mb-1">
+              Verification Code
+            </label>
+            <input
+              id="code"
+              type="text"
+              className="input-field"
+              placeholder="Enter the 6-digit code"
+              {...registerVerification('code')}
+            />
+            {verificationErrors.code && <p className="form-error">{verificationErrors.code.message}</p>}
+          </div>
+          
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="btn-primary w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Verifying...' : 'Verify Account'}
+            </button>
+          </div>
+        </form>
       </div>
     );
   }

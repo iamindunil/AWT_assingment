@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const sendVerificationCode = (email, code) => {
+const sendVerificationCode = async (email, code) => {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -22,8 +22,15 @@ const sendVerificationCode = (email, code) => {
         text: `Dear user,\n\nPlease use the following verification code to verify your email address.\n\nCode: ${code}\n\nBest regards,\nBook Manager Team`,
     };
 
-    // Send the email
-    return transporter.sendMail(mailOptions);
+    try {
+        // Send the email
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Verification email sent to ${email}: ${info.messageId}`);
+        return info;
+    } catch (error) {
+        console.error(`Error sending verification email to ${email}:`, error);
+        throw new Error(`Failed to send verification email: ${error.message}`);
+    }
 };
 
 export {sendVerificationCode};

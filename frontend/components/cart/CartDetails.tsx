@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { FaTrash, FaMinus, FaPlus, FaArrowRight } from 'react-icons/fa';
+import { FaTrash, FaMinus, FaPlus, FaArrowRight, FaUser } from 'react-icons/fa';
 import Loader from '@/components/ui/Loader';
 
 export default function CartDetails() {
@@ -163,12 +162,21 @@ export default function CartDetails() {
             onClick={handleProceedToCheckout}
             className="btn-primary w-full mt-6 flex items-center justify-center"
           >
-            <span>Proceed to Checkout</span>
-            <FaArrowRight className="ml-2" />
+            {isAuthenticated ? (
+              <>
+                <span>Proceed to Checkout</span>
+                <FaArrowRight className="ml-2" />
+              </>
+            ) : (
+              <>
+                <FaUser className="mr-2" />
+                <span>Login to Checkout</span>
+              </>
+            )}
           </button>
           
           {!isAuthenticated && (
-            <p className="text-sm text-gray-600 mt-4">
+            <p className="text-sm text-gray-600 mt-4 text-center">
               You'll need to log in before completing your purchase.
             </p>
           )}

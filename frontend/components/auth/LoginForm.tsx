@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 const loginSchema = z.object({
@@ -13,13 +13,31 @@ const loginSchema = z.object({
   rememberMe: z.boolean().optional(),
 });
 
+const verificationSchema = z.object({
+  code: z.string().min(6, 'Please enter the 6-digit verification code'),
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
+type VerificationFormValues = z.infer<typeof verificationSchema>;
 
 export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [redirectPath, setRedirectPath] = useState('/');
+  
   const router = useRouter();
-  const { login } = useAuth();
+  const searchParams = useSearchParams();
+  const { login, verifyEmail } = useAuth();
+
+  // Get redirect path from URL if available
+  useEffect(() => {
+    const redirect = searchParams.get('redirect');
+    if (redirect) {
+      setRedirectPath(`/${redirect}`);
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -34,21 +52,35 @@ export function LoginForm() {
     },
   });
 
+  const {
+    register: registerVerification,
+    handleSubmit: handleVerificationSubmit,
+    formState: { errors: verificationErrors },
+  } = useForm<VerificationFormValues>({
+    resolver: zodResolver(verificationSchema),
+    defaultValues: {
+      code: '',
+    },
+  });
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setIsSubmitting(true);
       setLoginError('');
       
-      const success = await login(
+      const result = await login(
         data.email,
         data.password,
         Boolean(data.rememberMe)
       );
       
-      if (success) {
-        router.push('/');
+      if (result.success) {
+        router.push(redirectPath);
+      } else if (result.needsVerification) {
+        setNeedsVerification(true);
+        setUserEmail(result.email);
       } else {
-        setLoginError('Invalid email or password. Please try again.');
+        setLoginError(result.message || 'Invalid email or password. Please try again.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -57,6 +89,115 @@ export function LoginForm() {
       setIsSubmitting(false);
     }
   };
+
+  const onVerificationSubmit = async (data: VerificationFormValues) => {
+    try {
+      setIsSubmitting(true);
+      setLoginError('');
+      
+      const success = await verifyEmail(userEmail, data.code);
+      
+      if (success) {
+        // After verification, try to log in again
+        const loginResult = await login(userEmail, '', false); // Password isn't needed here as we'll be redirected to login again
+        if (loginResult.success) {
+          router.push(redirectPath);
+        } else {
+          setNeedsVerification(false);
+          setLoginError('Verification successful. Please log in again.');
+        }
+      } else {
+        setLoginError('Invalid verification code. Please try again.');
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      setLoginError('An error occurred during verification. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resendVerificationCode = async () => {
+    try {
+      setIsSubmitting(true);
+      const response = await fetch('/api/email-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: userEmail }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setLoginError('Verification code resent. Please check your email.');
+      } else {
+        setLoginError(data.message || 'Failed to resend verification code.');
+      }
+    } catch (error) {
+      console.error('Resend error:', error);
+      setLoginError('An error occurred while resending the code.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (needsVerification) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center py-4">
+          <h2 className="text-xl font-semibold mb-2">Email Verification Required</h2>
+          <p className="mb-4">
+            Your email ({userEmail}) needs to be verified before you can log in. Please enter the verification code sent to your email.
+          </p>
+        </div>
+
+        {loginError && (
+          <div className="bg-red-50 border border-red-400 p-3 rounded text-red-800 text-sm">
+            {loginError}
+          </div>
+        )}
+
+        <form onSubmit={handleVerificationSubmit(onVerificationSubmit)} className="space-y-4">
+          <div>
+            <label htmlFor="code" className="block text-gray-700 font-medium mb-1">
+              Verification Code
+            </label>
+            <input
+              id="code"
+              type="text"
+              className="input-field"
+              placeholder="Enter the 6-digit code"
+              {...registerVerification('code')}
+            />
+            {verificationErrors.code && <p className="form-error">{verificationErrors.code.message}</p>}
+          </div>
+          
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="btn-primary w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Verifying...' : 'Verify Email'}
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={resendVerificationCode}
+              className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+              disabled={isSubmitting}
+            >
+              Didn't receive a code? Resend
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

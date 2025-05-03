@@ -1,6 +1,9 @@
 {
-  "/books/[id]/page": "app/books/[id]/page.js",
-  "/books/page": "app/books/page.js",
-  "/api/books/route": "app/api/books/route.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/auth/register/page": "app/auth/register/page.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/cart/page": "app/cart/page.js",
+  "/api/user/profile/route": "app/api/user/profile/route.js",
+  "/api/books/route": "app/api/books/route.js"
 }

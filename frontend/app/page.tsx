@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import BookList from '@/components/books/BookList';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
+  
   return (
     <div className="space-y-8">
       <section className="bg-primary-700 text-white rounded-lg p-8 text-center">
@@ -11,9 +16,11 @@ export default function Home() {
           <Link href="/books" className="btn-primary">
             Browse Books
           </Link>
-          <Link href="/auth/register" className="bg-white text-primary-700 font-medium py-2 px-4 rounded hover:bg-gray-100 transition-colors">
-            Sign Up
-          </Link>
+          {!isAuthenticated && (
+            <Link href="/auth/register" className="bg-white text-primary-700 font-medium py-2 px-4 rounded hover:bg-gray-100 transition-colors">
+              Sign Up
+            </Link>
+          )}
         </div>
       </section>
       

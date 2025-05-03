@@ -32,7 +32,7 @@ export default function ShippingForm() {
   };
 
   return (
-    <form onChange={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
       
       <div>
@@ -100,6 +100,7 @@ export default function ShippingForm() {
             {...register('country')}
           >
             <option value="">Select country</option>
+            <option value="IN">Srilanka</option>
             <option value="US">United States</option>
             <option value="CA">Canada</option>
             <option value="UK">United Kingdom</option>

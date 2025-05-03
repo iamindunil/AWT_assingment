@@ -2,6 +2,7 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { authenticateToken } from '../middleware/authentication.js';
+import { sendVerificationCode } from '../utils/mailer.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -63,11 +64,20 @@ router.put('/', /*authenticateToken,*/ async (req, res) => {
   }
 });
 
-// Create new user
+// Create new user - now sends verification code first
 router.post('/', async (req, res) => {
   const { name, email, phone_number, password } = req.body;
   try {
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ error: 'Email already exists', success: false });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create user in the database
     const user = await prisma.user.create({
       data: {
         name,
@@ -76,12 +86,43 @@ router.post('/', async (req, res) => {
         password: hashedPassword,
       },
     });
-    res.status(201).json({ message: 'User created', user });
+
+    // Generate a 6-digit verification code
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    
+    // Store the verification code
+    await prisma.email_verifications.create({
+      data: {
+        email,
+        code,
+      },
+    });
+    
+    try {
+      // Send verification email
+      await sendVerificationCode(email, code);
+      
+      res.status(201).json({ 
+        message: 'User registered. Please verify your email to complete registration.', 
+        email,
+        success: true 
+      });
+    } catch (emailError) {
+      console.error('Error sending verification email:', emailError);
+      // User is created but email failed - still return success but with a different message
+      res.status(201).json({ 
+        message: 'Account created but there was an issue sending the verification email. Please request a new code.', 
+        email,
+        success: true,
+        emailSent: false
+      });
+    }
   } catch (err) {
     if (err.code === 'P2002') {
-      res.status(409).json({ error: 'Email already exists' });
+      res.status(409).json({ error: 'Email already exists', success: false });
     } else {
-      res.status(500).json({ error: err.message });
+      console.error('Registration error:', err);
+      res.status(500).json({ error: err.message, success: false });
     }
   }
 });

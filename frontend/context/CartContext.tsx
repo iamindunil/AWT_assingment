@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
+import { useRouter } from 'next/navigation';
 
 export interface CartItem {
   id: string;
@@ -30,6 +31,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
+  const router = useRouter();
 
   // Calculate totals - ensure cartItems is an array before using reduce
   const totalItems = Array.isArray(cartItems) 
@@ -40,26 +42,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     ? cartItems.reduce((total, item) => total + item.price * item.quantity, 0) 
     : 0;
 
-  // Load cart from API or local storage
+  // Load cart from local storage on initial load
   useEffect(() => {
     const loadCart = async () => {
       try {
-        if (isAuthenticated && user) {
-          // Get cart from API if user is logged in
-          const { data } = await axios.get('/api/shopping-cart');
-          // Ensure data is an array before setting
-          setCartItems(Array.isArray(data) ? data : []);
-        } else {
-          // Get cart from local storage if user is not logged in
-          const storedCart = localStorage.getItem('cart');
-          if (storedCart) {
-            try {
-              const parsedCart = JSON.parse(storedCart);
-              setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
-            } catch (e) {
-              console.error('Failed to parse cart from localStorage:', e);
-              setCartItems([]);
-            }
+        setIsLoading(true);
+        // Get cart from local storage
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          try {
+            const parsedCart = JSON.parse(storedCart);
+            setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
+          } catch (e) {
+            console.error('Failed to parse cart from localStorage:', e);
+            setCartItems([]);
           }
         }
       } catch (error) {
@@ -72,28 +68,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     loadCart();
-  }, [isAuthenticated, user]);
+  }, []);
 
-  // Save cart to API or local storage when it changes
+  // Save cart to local storage when it changes
   useEffect(() => {
     if (!isLoading) {
-      if (isAuthenticated && user) {
-        // Save to API
-        const saveCart = async () => {
-          try {
-            // Ensure cartItems is an array before sending
-            await axios.put('/api/shopping-cart', Array.isArray(cartItems) ? cartItems : []);
-          } catch (error) {
-            console.error('Failed to save cart:', error);
-          }
-        };
-        saveCart();
-      } else {
-        // Save to local storage
-        localStorage.setItem('cart', JSON.stringify(Array.isArray(cartItems) ? cartItems : []));
-      }
+      localStorage.setItem('cart', JSON.stringify(Array.isArray(cartItems) ? cartItems : []));
     }
-  }, [cartItems, isAuthenticated, user, isLoading]);
+  }, [cartItems, isLoading]);
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setCartItems(prevItems => {

@@ -1,4 +1,4 @@
-// File: G:\GitHub\AWT_assingment\frontend\app\api\user\profile\route.ts
+// File: G:\GitHub\online-book-manager\frontend\app\api\user\profile\route.ts
 import * as entry from '../../../../../../app/api/user/profile/route.js'
 import type { NextRequest } from 'next/server.js'
 

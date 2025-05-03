@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { headers } from 'next/headers';
+import { jwtDecode } from 'jwt-decode';
 
 export async function GET(request: Request) {
   try {
@@ -15,16 +17,22 @@ export async function GET(request: Request) {
     
     const token = authHeader.split(' ')[1];
     
-    // For now, return mock user data since we don't have a working backend endpoint
-    // In a real application, you'd verify the token with the backend
-    return NextResponse.json({
-      email: 'user@example.com',
-      name: 'Example User',
-    });
+    try {
+      // Decode token to get user info
+      const tokenData = jwtDecode(token);
+      if (tokenData && tokenData.email && tokenData.name) {
+        // Return the user data from the token
+        return NextResponse.json({
+          email: tokenData.email,
+          name: tokenData.name,
+        });
+      }
+    } catch (decodeError) {
+      console.error('Error decoding token:', decodeError);
+    }
     
-    // When your backend is ready, uncomment this code:
-    /*
-    const response = await fetch('http://localhost:5000/user/profile', {
+    // Fallback: Forward the request to the backend
+    const response = await fetch('http://localhost:5000/auth/user', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -39,7 +47,6 @@ export async function GET(request: Request) {
     
     const data = await response.json();
     return NextResponse.json(data);
-    */
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(

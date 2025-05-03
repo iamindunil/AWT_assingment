@@ -5,6 +5,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, password } = body;
     
+    // Validate required fields
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { message: 'Name, email, and password are required', success: false },
+        { status: 400 }
+      );
+    }
+    
     // Forward the request to the backend
     const response = await fetch('http://localhost:5000/user', {
       method: 'POST',
@@ -14,27 +22,28 @@ export async function POST(request: Request) {
       body: JSON.stringify({ name, email, password }),
     });
     
+    const data = await response.json();
+    
     if (!response.ok) {
-      const errorData = await response.json();
       return NextResponse.json(
-        { message: errorData.error || 'Registration failed' },
+        { 
+          message: data.error || 'Registration failed', 
+          success: false 
+        },
         { status: response.status }
       );
     }
     
-    const data = await response.json();
-    
     return NextResponse.json({
-      message: 'Registration successful',
-      user: {
-        email: data.user.email,
-        name: data.user.name,
-      }
+      message: data.message || 'Registration successful',
+      email: data.email,
+      success: data.success !== undefined ? data.success : true,
+      emailSent: data.emailSent
     });
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', success: false },
       { status: 500 }
     );
   }

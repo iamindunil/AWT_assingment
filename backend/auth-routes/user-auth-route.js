@@ -23,6 +23,21 @@ router.post('/login', async (req, res) => {
             return res.json({ successful: false, message: 'Invalid password' });
         }
 
+        // Check if email is verified by checking if a verification record exists
+        const verificationRecord = await prisma.email_verifications.findUnique({
+            where: { email: user.email }
+        });
+
+        // If a verification record exists, the email is not verified yet
+        if (verificationRecord) {
+            return res.json({ 
+                successful: false, 
+                message: 'Please verify your email before logging in',
+                needsVerification: true,
+                email: user.email
+            });
+        }
+
         const tokens = jwTokens(user.email, user.name);
 
         res.cookie('refreshToken', tokens.refreshToken, {
@@ -32,7 +47,15 @@ router.post('/login', async (req, res) => {
             ...(checked && { maxAge: 14 * 24 * 60 * 60 * 1000 }), // 14 days if remembered
         });
 
-        return res.json({ successful: true, message: 'Login successful' });
+        return res.json({ 
+            successful: true, 
+            message: 'Login successful',
+            accessToken: tokens.accessToken,
+            user: {
+                email: user.email,
+                name: user.name
+            }
+        });
     } catch (err) {
         console.error(err.message);
         return res.status(500).json({ error: err.message });
