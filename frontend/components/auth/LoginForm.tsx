@@ -19,6 +19,12 @@ const verificationSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type VerificationFormValues = z.infer<typeof verificationSchema>;
+interface LoginResult {
+  success: boolean;
+  needsVerification?: boolean;
+  email?: string;
+  message?: string;
+}
 
 export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,7 +86,7 @@ export function LoginForm() {
         router.push(redirectPath);
       } else if (result.needsVerification) {
         setNeedsVerification(true);
-        setUserEmail(result.email);
+        setUserEmail(result.email ?? '');
       } else {
         setLoginError(result.message || 'Invalid email or password. Please try again.');
       }
