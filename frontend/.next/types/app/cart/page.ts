@@ -1,4 +1,4 @@
-// File: G:\GitHub\online-book-manager\frontend\app\cart\page.tsx
+// File: G:\GitHub\AWT_assingment\frontend\app\cart\page.tsx
 import * as entry from '../../../../app/cart/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

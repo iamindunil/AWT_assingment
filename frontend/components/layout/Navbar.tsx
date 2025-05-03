@@ -11,9 +11,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +26,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-primary-600">
-            BookManager
+            The BookBay
           </Link>
 
           {/* Desktop Navigation */}
@@ -47,7 +45,7 @@ export default function Navbar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"  aria-label="Search" title="Search">
                 <FaSearch />
               </button>
             </form>
@@ -63,10 +61,10 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            
+
             {isAuthenticated ? (
               <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-primary-600">
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 focus:outline-none">
                   <FaUser className="text-xl" />
                   <span className="font-medium">{user?.name?.split(' ')[0]}</span>
                 </button>
@@ -97,7 +95,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <button
             className="md:hidden text-gray-700 hover:text-primary-600"
             onClick={toggleMenu}
@@ -117,7 +115,8 @@ export default function Navbar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"  aria-label="Search"
+              title="Search">
                 <FaSearch />
               </button>
             </form>
@@ -131,7 +130,7 @@ export default function Navbar() {
               <Link href="/cart" className="text-gray-700 hover:text-primary-600 py-2 flex items-center">
                 <FaShoppingCart className="mr-2" /> Cart {totalItems > 0 && `(${totalItems})`}
               </Link>
-              
+
               {isAuthenticated ? (
                 <>
                   <Link href="/profile" className="text-gray-700 hover:text-primary-600 py-2">
@@ -163,4 +162,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-} 
+}
