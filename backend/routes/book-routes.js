@@ -10,8 +10,8 @@ function derivePriceFromId(id) {
     for (let i = 0; i < id.length; i++) {
       hash = id.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const min = 100;
-    const max = 1000;
+    const min = 10;
+    const max = 100;
     const price = Math.abs(hash) % (max - min + 1) + min;
     return price;
 }

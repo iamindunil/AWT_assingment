@@ -7,6 +7,9 @@ import PaymentForm from './PaymentForm';
 import OrderSummary from './OrderSummary';
 import OrderReview from './OrderReview';
 import { FaShoppingCart, FaTruck, FaCreditCard, FaCheckCircle } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const steps = [
   { id: 1, name: 'Cart', icon: FaShoppingCart },
@@ -16,8 +19,64 @@ const steps = [
 ];
 
 export default function CheckoutForm() {
-  const { step, nextStep, prevStep, placeOrder, isSubmitting } = useCheckout();
+  const { 
+    step, 
+    nextStep, 
+    prevStep, 
+    placeOrder, 
+    isSubmitting,
+    shippingInfo,
+    paymentInfo 
+  } = useCheckout();
   const { cartItems, totalItems } = useCart();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  const validateAndProceed = () => {
+    // Check authentication before final checkout step
+    if (step === 3 && !isAuthenticated) {
+      toast.warning('Please log in to complete your purchase');
+      router.push('/auth/login?redirect=/checkout');
+      return;
+    }
+
+    if (step === 2) {
+      // Validate shipping info
+      const { address, city, state, postalCode, country } = shippingInfo;
+      if (!address || !city || !state || !postalCode || !country) {
+        toast.error('Please complete all shipping information fields');
+        return;
+      }
+    } 
+    else if (step === 3) {
+      // Validate payment info
+      const { cardNumber, cardHolder, expiryDate, cvv } = paymentInfo;
+      const cardDigits = cardNumber.replace(/\s/g, '');
+      
+      if (!cardDigits || cardDigits.length !== 16) {
+        toast.error('Please enter a valid 16-digit card number');
+        return;
+      }
+      
+      if (!cardHolder) {
+        toast.error('Please enter the cardholder name');
+        return;
+      }
+      
+      if (!expiryDate || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate)) {
+        toast.error('Please enter a valid expiry date (MM/YY)');
+        return;
+      }
+      
+      if (!cvv || !/^\d{3,4}$/.test(cvv)) {
+        toast.error('Please enter a valid CVV code');
+        return;
+      }
+    }
+    
+    // All validations passed, proceed to next step
+    nextStep();
+  };
 
   if (totalItems === 0) {
     return (
@@ -103,7 +162,7 @@ export default function CheckoutForm() {
               Back
             </button>
             <button
-              onClick={nextStep}
+              onClick={validateAndProceed}
               className="btn-primary"
               disabled={isSubmitting}
             >

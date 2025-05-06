@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
@@ -28,82 +28,66 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TOKEN_COOKIE_NAME = 'token';
+const TOKEN_PATH = '/';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    // Check if user is logged in
-    const checkAuth = () => {
-      try {
-        const token = Cookies.get('token');
-        
-        // If we have a token, try to fetch user data
-        if (token) {
-          fetchUser(token);
-        } else {
-          // No token found, reset state
-          setUser(null);
-          setIsAuthenticated(false);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuth();
-
-    // Listen for token changes (like from login/logout in another tab)
-    const handleTokenChange = () => {
-      const newToken = Cookies.get('token');
-      if (newToken && !isAuthenticated) {
-        fetchUser(newToken);
-      } else if (!newToken && isAuthenticated) {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-    };
-
-    // Add event listener for storage changes
-    window.addEventListener('storage', handleTokenChange);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('storage', handleTokenChange);
-    };
-  }, [isAuthenticated]);
-
-  const fetchUser = async (token: string) => {
+  const fetchUser = useCallback(async (token: string) => {
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      
-      const { data } = await axios.get('/api/user/profile', config);
+      const { data } = await axios.get('/api/user/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       
       if (data && data.email) {
         setUser(data);
         setIsAuthenticated(true);
       } else {
-        console.error('Invalid user data returned from profile API');
-        Cookies.remove('token', { path: '/' });
-        setUser(null);
-        setIsAuthenticated(false);
+        clearAuthState();
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);
-      Cookies.remove('token', { path: '/' });
-      setUser(null);
-      setIsAuthenticated(false);
+      clearAuthState();
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const clearAuthState = useCallback(() => {
+    Cookies.remove(TOKEN_COOKIE_NAME, { path: TOKEN_PATH });
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  const handleTokenChange = useCallback(() => {
+    const newToken = Cookies.get(TOKEN_COOKIE_NAME);
+    if (newToken && !isAuthenticated) {
+      fetchUser(newToken);
+    } else if (!newToken && isAuthenticated) {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  }, [fetchUser, isAuthenticated]);
+
+  useEffect(() => {
+    const token = Cookies.get(TOKEN_COOKIE_NAME);
+    
+    if (token) {
+      fetchUser(token);
+    } else {
+      setIsLoading(false);
+    }
+
+    // Listen for token changes (like from login/logout in another tab)
+    window.addEventListener('storage', handleTokenChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleTokenChange);
+    };
+  }, [fetchUser, handleTokenChange]);
 
   const login = async (email: string, password: string, remember: boolean) => {
     try {
@@ -114,9 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (data.successful) {
         // Set cookie with path and secure settings for persistence
-        Cookies.set('token', data.token, { 
+        Cookies.set(TOKEN_COOKIE_NAME, data.token, { 
           expires: remember ? 30 : 1,
-          path: '/',
+          path: TOKEN_PATH,
           sameSite: 'strict',
           secure: location.protocol === 'https:'
         });
@@ -124,8 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         setIsAuthenticated(true);
         
-        // If we have a local cart, we should preserve it or merge it with server cart
-        // This is a simplified version - in a real app, you'd want to merge with the server cart
+        // Preserve local cart
         if (localCart) {
           localStorage.setItem('cart', localCart);
         }
@@ -141,21 +124,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           message: data.message
         };
       } else {
-        toast.error(data.message || 'Login failed. Please check your credentials.');
+        toast.error(data.message || 'Login failed');
         return { 
           success: false, 
           message: data.message || 'Login failed. Please check your credentials.'
         };
       }
     } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
       console.error('Login failed:', error);
-      if (error.response && error.response.data && error.response.data.message) {
-        toast.error(`Login failed: ${error.response.data.message}`);
-        return { success: false, message: error.response.data.message };
-      } else {
-        toast.error('Login failed. Please check your credentials.');
-        return { success: false, message: 'Login failed. Please check your credentials.' };
-      }
+      toast.error(`Login failed: ${errorMessage}`);
+      return { success: false, message: errorMessage };
     }
   };
 
@@ -171,12 +150,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
     } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
       console.error('Registration failed:', error);
-      if (error.response && error.response.data && error.response.data.message) {
-        toast.error(`Registration failed: ${error.response.data.message}`);
-      } else {
-        toast.error('Registration failed. Please try again.');
-      }
+      toast.error(`Registration failed: ${errorMessage}`);
       return false;
     }
   };
@@ -193,29 +169,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
     } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Email verification failed. Please try again.';
       console.error('Email verification failed:', error);
-      if (error.response && error.response.data && error.response.data.message) {
-        toast.error(`Verification failed: ${error.response.data.message}`);
-      } else {
-        toast.error('Email verification failed. Please try again.');
-      }
+      toast.error(`Verification failed: ${errorMessage}`);
       return false;
     }
   };
 
-  const logout = () => {
-    // Remove token with the same path
-    Cookies.remove('token', { path: '/' });
-    // Fallback removal in case the path is different
-    Cookies.remove('token');
-    
-    setUser(null);
-    setIsAuthenticated(false);
+  const logout = useCallback(() => {
+    clearAuthState();
     toast.success('Logged out successfully');
-  };
+  }, [clearAuthState]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated, login, register, logout, verifyEmail }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      isAuthenticated, 
+      login, 
+      register, 
+      logout, 
+      verifyEmail 
+    }}>
       {children}
     </AuthContext.Provider>
   );

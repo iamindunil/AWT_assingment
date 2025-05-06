@@ -74,4 +74,20 @@ This frontend connects to a Node.js/Express backend API. Make sure the backend s
 
 ## Responsive Design
 
-The application is fully responsive and works on devices of all sizes, from mobile phones to desktop computers. 
+The application is fully responsive and works on devices of all sizes, from mobile phones to desktop computers.
+
+## Environment Setup
+
+To ensure the application can connect to the backend server properly, create a `.env.local` file in the frontend directory with the following content:
+
+```
+# Backend API URL - This needs to be NEXT_PUBLIC_ to be accessible in the browser
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+
+# Add other environment variables as needed
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Make sure to adjust the URL if your backend is running on a different port or host.
+
+**Important**: After creating or changing the `.env.local` file, restart your development server for the changes to take effect. 

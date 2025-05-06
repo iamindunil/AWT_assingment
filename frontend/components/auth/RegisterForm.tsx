@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,8 @@ export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [error, setError] = useState('');
+  
   const router = useRouter();
   const { register: registerUser, verifyEmail } = useAuth();
   
@@ -56,9 +58,10 @@ export function RegisterForm() {
     },
   });
 
-  const onSubmit = async (data: RegisterFormValues) => {
+  const onSubmit = useCallback(async (data: RegisterFormValues) => {
     try {
       setIsSubmitting(true);
+      setError('');
       const success = await registerUser(data.name, data.email, data.password);
       
       if (success) {
@@ -67,25 +70,57 @@ export function RegisterForm() {
       }
     } catch (error) {
       console.error('Registration error:', error);
+      setError('An error occurred during registration. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [registerUser]);
 
-  const onVerificationSubmit = async (data: VerificationFormValues) => {
+  const onVerificationSubmit = useCallback(async (data: VerificationFormValues) => {
     try {
       setIsSubmitting(true);
+      setError('');
       const success = await verifyEmail(registeredEmail, data.code);
       
       if (success) {
         router.push('/auth/login');
+      } else {
+        setError('Invalid verification code. Please try again.');
       }
     } catch (error) {
       console.error('Verification error:', error);
+      setError('An error occurred during verification. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [verifyEmail, registeredEmail, router]);
+
+  const resendVerificationCode = useCallback(async () => {
+    try {
+      setIsSubmitting(true);
+      setError('');
+      const response = await fetch('/api/email-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: registeredEmail }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setError('Verification code resent. Please check your email.');
+      } else {
+        setError(data.message || 'Failed to resend verification code.');
+      }
+    } catch (error) {
+      console.error('Resend error:', error);
+      setError('An error occurred while resending the code.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [registeredEmail]);
 
   if (verificationSent) {
     return (
@@ -96,6 +131,12 @@ export function RegisterForm() {
             We've sent a verification code to {registeredEmail}. Please enter the code below to verify your account.
           </p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-400 p-3 rounded text-red-800 text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleVerificationSubmit(onVerificationSubmit)} className="space-y-4">
           <div>
@@ -121,6 +162,17 @@ export function RegisterForm() {
               {isSubmitting ? 'Verifying...' : 'Verify Account'}
             </button>
           </div>
+          
+          <div className="text-center mt-2">
+            <button
+              type="button"
+              onClick={resendVerificationCode}
+              className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+              disabled={isSubmitting}
+            >
+              Didn't receive a code? Resend
+            </button>
+          </div>
         </form>
       </div>
     );
@@ -128,6 +180,12 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {error && (
+        <div className="bg-red-50 border border-red-400 p-3 rounded text-red-800 text-sm">
+          {error}
+        </div>
+      )}
+      
       <div>
         <label htmlFor="name" className="block text-gray-700 font-medium mb-1">
           Full Name

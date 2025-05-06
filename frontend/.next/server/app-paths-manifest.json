@@ -1,6 +1,10 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/books/page": "app/books/page.js",
   "/page": "app/page.js",
-  "/api/books/route": "app/api/books/route.js"
+  "/books/search/page": "app/books/search/page.js",
+  "/books/page": "app/books/page.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/api/payment/route": "app/api/payment/route.js",
+  "/api/shipping/route": "app/api/shipping/route.js",
+  "/checkout/success/page": "app/checkout/success/page.js",
+  "/checkout/page": "app/checkout/page.js"
 }

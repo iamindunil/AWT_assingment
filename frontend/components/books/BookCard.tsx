@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { FaShoppingCart } from 'react-icons/fa';
+import { formatPrice, roundPrice } from '@/utils/formatters';
 
 interface Book {
   id: string;
@@ -26,16 +27,13 @@ export default function BookCard({ book }: BookCardProps) {
     addToCart({
       id: book.id,
       title: book.title,
-      price: book.price,
+      price: roundPrice(book.price),
       thumbnail: book.thumbnail,
     });
   };
 
-  // Format the price with 2 decimal places
-  const formattedPrice = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(book.price);
+  // Format the price using the utility function
+  const formattedPrice = formatPrice(book.price);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">

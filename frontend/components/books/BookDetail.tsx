@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { FaShoppingCart, FaArrowLeft } from 'react-icons/fa';
 import Loader from '@/components/ui/Loader';
+import { formatPrice, roundPrice } from '@/utils/formatters';
 
 interface Book {
   id: string;
@@ -37,9 +38,27 @@ export default function BookDetail({ id }: BookDetailProps) {
       try {
         setLoading(true);
         console.log(`Fetching book with ID: ${id}`);
-        const response = await axios.get(`/api/books/${id}`);
+        
+        // Add cache-busting timestamp
+        const timestamp = Date.now();
+        const endpoint = `/api/books/${id}?_t=${timestamp}`;
+        
+        const response = await axios.get(endpoint, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
+        
         console.log('Book data:', response.data);
-        setBook(response.data);
+        
+        // Make sure the price is rounded to 2 decimal places
+        const bookData = {
+          ...response.data,
+          price: roundPrice(response.data.price)
+        };
+        
+        setBook(bookData);
       } catch (error) {
         console.error('Failed to fetch book:', error);
         setError('Failed to load book details. Please try again later.');
@@ -59,7 +78,7 @@ export default function BookDetail({ id }: BookDetailProps) {
       addToCart({
         id: book.id,
         title: book.title,
-        price: book.price,
+        price: book.price, // Already rounded when setting the book state
         thumbnail: book.thumbnail,
       });
     }
@@ -92,11 +111,8 @@ export default function BookDetail({ id }: BookDetailProps) {
     );
   }
 
-  // Format the price with 2 decimal places
-  const formattedPrice = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(book.price);
+  // Format the price using the utility function
+  const formattedPrice = formatPrice(book.price);
 
   return (
     <div>

@@ -4,6 +4,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCheckout } from './CheckoutContext';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { FaHistory } from 'react-icons/fa';
 
 const shippingSchema = z.object({
   address: z.string().min(1, 'Address is required'),
@@ -16,24 +19,83 @@ const shippingSchema = z.object({
 type ShippingFormValues = z.infer<typeof shippingSchema>;
 
 export default function ShippingForm() {
-  const { shippingInfo, updateShippingInfo } = useCheckout();
+  const { 
+    shippingInfo, 
+    updateShippingInfo, 
+    savedShippingInfo, 
+    loadSavedShippingInfo
+  } = useCheckout();
+  const { isAuthenticated, user } = useAuth();
+  const [dataLoaded, setDataLoaded] = useState(false);
   
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
+    getValues,
+    reset,
   } = useForm<ShippingFormValues>({
     resolver: zodResolver(shippingSchema),
     defaultValues: shippingInfo,
+    mode: 'onBlur', // Only validate on blur, not while typing
   });
 
-  const onSubmit = (data: ShippingFormValues) => {
-    updateShippingInfo(data);
+  // Load saved shipping info when component mounts
+  useEffect(() => {
+    const autoLoadSavedInfo = async () => {
+      if (isAuthenticated && user && !dataLoaded) {
+        try {
+          await loadSavedShippingInfo();
+          setDataLoaded(true);
+        } catch (error) {
+          console.error('Failed to auto-load shipping info:', error);
+        }
+      }
+    };
+
+    autoLoadSavedInfo();
+  }, [isAuthenticated, user, loadSavedShippingInfo, dataLoaded]);
+
+  // Reset form when shipping info changes (e.g., when saved info is loaded)
+  useEffect(() => {
+    reset(shippingInfo);
+  }, [shippingInfo, reset]);
+
+  // Auto-save form values on change
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name && value[name] !== undefined) {
+        // Use timeout to avoid calling too frequently during typing
+        const timeoutId = setTimeout(() => {
+          updateShippingInfo(getValues() as ShippingFormValues);
+        }, 500);
+        
+        return () => clearTimeout(timeoutId);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [watch, updateShippingInfo, getValues]);
+
+  const handleLoadSavedInfo = async () => {
+    await loadSavedShippingInfo();
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
+    <form className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Shipping Information</h2>
+        {isAuthenticated && savedShippingInfo && (
+          <button 
+            type="button"
+            onClick={handleLoadSavedInfo}
+            className="text-primary-600 flex items-center text-sm"
+          >
+            <FaHistory className="mr-1" /> Load Saved
+          </button>
+        )}
+      </div>
       
       <div>
         <label htmlFor="address" className="block text-gray-700 font-medium mb-1">
@@ -100,7 +162,7 @@ export default function ShippingForm() {
             {...register('country')}
           >
             <option value="">Select country</option>
-            <option value="IN">Srilanka</option>
+            <option value="LK">Sri Lanka</option>
             <option value="US">United States</option>
             <option value="CA">Canada</option>
             <option value="UK">United Kingdom</option>

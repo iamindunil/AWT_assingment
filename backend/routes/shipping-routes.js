@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Get shipping info for a specific email
 router.get('/:email', /*authenticateToken,*/ async (req, res) => {
+  console.debug("shipping info route hit");
   const { email } = req.params;
   try {
     const shipping = await prisma.shipping.findUnique({ where: { email } });

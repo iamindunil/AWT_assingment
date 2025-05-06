@@ -1,8 +1,11 @@
+"use client";
 import Link from 'next/link';
 import { FaFacebook, FaTwitter, FaInstagram, FaEnvelope } from 'react-icons/fa';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { isAuthenticated } = useAuth();
   
   return (
     <footer className="bg-gray-800 text-white pt-10 pb-6">
@@ -84,16 +87,20 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">My Account</h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/auth/login" className="text-gray-300 hover:text-white">
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link href="/auth/register" className="text-gray-300 hover:text-white">
-                  Register
-                </Link>
-              </li>
+              {!isAuthenticated ? (
+                <>
+                  <li>
+                    <Link href="/auth/login" className="text-gray-300 hover:text-white">
+                      Login
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/auth/register" className="text-gray-300 hover:text-white">
+                      Register
+                    </Link>
+                  </li>
+                </>
+              ) : null}
               <li>
                 <Link href="/orders" className="text-gray-300 hover:text-white">
                   Orders

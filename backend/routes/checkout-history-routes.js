@@ -23,6 +23,7 @@ router.get('/:email', /*authenticateToken,*/ async (req, res) => {
 // Insert new checkout entry
 router.post('/', /*authenticateToken,*/ async (req, res) => {
   const { email, book_isbn, total_price, qty, checkout_date_and_time } = req.body;
+  console.debug(req.body);
   try {
     const newEntry = await prisma.checkout_history.create({
       data: {

@@ -1,10 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
-import { useRouter } from 'next/navigation';
 
 export interface CartItem {
   id: string;
@@ -26,36 +24,38 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+const CART_STORAGE_KEY = 'cart';
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
-  const router = useRouter();
 
-  // Calculate totals - ensure cartItems is an array before using reduce
-  const totalItems = Array.isArray(cartItems) 
-    ? cartItems.reduce((total, item) => total + item.quantity, 0) 
-    : 0;
+  // Calculate totals using useMemo
+  const totalItems = useMemo(() => 
+    cartItems.reduce((total, item) => total + item.quantity, 0), 
+    [cartItems]
+  );
     
-  const totalPrice = Array.isArray(cartItems) 
-    ? cartItems.reduce((total, item) => total + item.price * item.quantity, 0) 
-    : 0;
+  const totalPrice = useMemo(() => 
+    cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
+    [cartItems]
+  );
 
   // Load cart from local storage on initial load
   useEffect(() => {
-    const loadCart = async () => {
+    const loadCart = () => {
       try {
         setIsLoading(true);
         // Get cart from local storage
-        const storedCart = localStorage.getItem('cart');
-        if (storedCart) {
-          try {
-            const parsedCart = JSON.parse(storedCart);
-            setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
-          } catch (e) {
-            console.error('Failed to parse cart from localStorage:', e);
-            setCartItems([]);
+        const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+          if (storedCart) {
+            try {
+              const parsedCart = JSON.parse(storedCart);
+              setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
+            } catch (e) {
+              console.error('Failed to parse cart from localStorage:', e);
+              setCartItems([]);
           }
         }
       } catch (error) {
@@ -73,11 +73,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Save cart to local storage when it changes
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('cart', JSON.stringify(Array.isArray(cartItems) ? cartItems : []));
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
     }
   }, [cartItems, isLoading]);
 
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
+  const addToCart = useCallback((item: Omit<CartItem, 'quantity'>) => {
     setCartItems(prevItems => {
       // Check if item already exists in cart
       const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
@@ -94,14 +94,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
     
     toast.success('Item added to cart');
-  };
+  }, []);
 
-  const removeFromCart = (id: string) => {
+  const removeFromCart = useCallback((id: string) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
     toast.info('Item removed from cart');
-  };
+  }, []);
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(id);
       return;
@@ -112,15 +112,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
         item.id === id ? { ...item, quantity } : item
       )
     );
-  };
+  }, [removeFromCart]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCartItems([]);
     toast.info('Cart cleared');
-  };
+  }, []);
 
-  return (
-    <CartContext.Provider value={{ 
+  // Memoize the context value
+  const contextValue = useMemo(() => ({
+    cartItems, 
+    totalItems, 
+    totalPrice, 
+    addToCart, 
+    removeFromCart, 
+    updateQuantity, 
+    clearCart,
+    isLoading
+  }), [
       cartItems, 
       totalItems, 
       totalPrice, 
@@ -129,7 +138,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateQuantity, 
       clearCart,
       isLoading
-    }}>
+  ]);
+
+  return (
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

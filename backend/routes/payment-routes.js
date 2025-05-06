@@ -11,8 +11,13 @@ const MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // Get billing info
 router.get('/', (req, res) => {
+  console.debug("billing info route hit");
   const billing = req.cookies[COOKIE_NAME];
-  if (!billing) return res.json({ message: 'No billing info saved' });
+  if (!billing) {
+    console.debug("No billing info saved");
+    return res.json({ message: 'No billing info saved' });
+  }
+  console.debug("Billing info saved");
   res.json(JSON.parse(billing));
 });
 
