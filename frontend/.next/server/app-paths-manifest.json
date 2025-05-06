@@ -1,10 +1,5 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
   "/cart/page": "app/cart/page.js",
-  "/books/page": "app/books/page.js",
-  "/api/books/route": "app/api/books/route.js",
-  "/checkout/page": "app/checkout/page.js",
-  "/api/payment/route": "app/api/payment/route.js",
-  "/api/shipping/route": "app/api/shipping/route.js"
+  "/books/page": "app/books/page.js"
 }

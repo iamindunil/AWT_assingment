@@ -147,7 +147,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-primary-600">
-            BookManager
+            The Book Bay
           </Link>
 
           {/* Desktop Navigation */}
@@ -155,8 +155,8 @@ export default function Navbar() {
             <Link href="/books" className="text-gray-700 hover:text-primary-600">
               Books
             </Link>
-            <Link href="/categories" className="text-gray-700 hover:text-primary-600">
-              Categories
+            <Link href="/favourite" className="text-gray-700 hover:text-primary-600">
+              Favourites
             </Link>
             <SearchBar />
           </div>
@@ -192,8 +192,8 @@ export default function Navbar() {
               <Link href="/books" className="text-gray-700 hover:text-primary-600 py-2">
                 Books
               </Link>
-              <Link href="/categories" className="text-gray-700 hover:text-primary-600 py-2">
-                Categories
+              <Link href="/Favourites" className="text-gray-700 hover:text-primary-600 py-2">
+                Favourites
               </Link>
               <Link href="/cart" className="text-gray-700 hover:text-primary-600 py-2 flex items-center">
                 <FaShoppingCart className="mr-2" /> Cart {totalItems > 0 && `(${totalItems})`}

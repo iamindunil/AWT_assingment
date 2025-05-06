@@ -26,10 +26,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/checkout/page.js"
     ],
-    "/_not-found/page": [
+    "/books/search/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/books/search/page.js"
     ]
   }
 }
