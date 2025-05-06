@@ -14,7 +14,7 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4">The Book Bay</h3>
             <p className="text-gray-300 mb-4">
-              Your one-stop destination for all your book needs. Browse, buy, and enjoy!
+            Your ultimate book hub — explore, purchase, and dive into great stories.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-300 hover:text-white">

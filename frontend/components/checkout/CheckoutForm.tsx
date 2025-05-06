@@ -155,15 +155,15 @@ export default function CheckoutForm() {
         {(step === 2 || step === 3) && (
           <div className="flex justify-between">
             <button
-              onClick={prevStep}
-              className="btn-secondary"
-              disabled={isSubmitting}
+             onClick={validateAndProceed}
+             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all"
+             disabled={isSubmitting}
             >
               Back
             </button>
             <button
               onClick={validateAndProceed}
-              className="btn-primary"
+              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all"
               disabled={isSubmitting}
             >
               {step === 3 ? 'Review Order' : 'Continue'}

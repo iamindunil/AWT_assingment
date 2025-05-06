@@ -186,7 +186,7 @@ export function LoginForm() {
             <button
               type="button"
               onClick={resendVerificationCode}
-              className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all"
               disabled={isSubmitting}
             >
               Didn't receive a code? Resend
