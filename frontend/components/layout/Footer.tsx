@@ -12,7 +12,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">BookManager</h3>
+            <h3 className="text-xl font-bold mb-4">The Book Bay</h3>
             <p className="text-gray-300 mb-4">
               Your one-stop destination for all your book needs. Browse, buy, and enjoy!
             </p>
@@ -118,7 +118,7 @@ export default function Footer() {
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              &copy; {currentYear} BookManager. All rights reserved.
+              &copy; {currentYear} The Book Bay. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link href="/privacy-policy" className="text-gray-400 text-sm hover:text-white">

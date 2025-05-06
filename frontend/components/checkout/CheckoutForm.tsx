@@ -134,7 +134,7 @@ export default function CheckoutForm() {
           {/* Current Step Content */}
           {step === 1 && (
             <div className="text-center py-8">
-              <button onClick={nextStep} className="btn-primary px-8">
+              <button onClick={nextStep} className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all">
                 Begin Checkout
               </button>
             </div>

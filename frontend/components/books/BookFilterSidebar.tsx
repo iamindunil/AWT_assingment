@@ -59,7 +59,7 @@ export function BookFilterSidebar() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-[#95c6ee] rounded-lg shadow p-6">
       {/* Mobile filter toggle */}
       <button
         className="w-full flex items-center justify-between lg:hidden mb-4 text-gray-700 font-medium"

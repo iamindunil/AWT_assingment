@@ -10,20 +10,30 @@ export default function Home() {
   
   return (
     <div className="space-y-12">
-      <section className="bg-gradient-to-r from-primary-700 to-primary-800 text-white rounded-lg p-8 text-center shadow-lg">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Online Book Manager</h1>
-        <p className="text-xl mb-6 max-w-3xl mx-auto">Discover, browse, and purchase books online with our updated collection and new pricing!</p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/books" className="btn-primary">
-            Browse Books
-          </Link>
-          {!isAuthenticated && (
-            <Link href="/auth/register" className="bg-white text-primary-700 font-medium py-2 px-4 rounded hover:bg-gray-100 transition-colors">
-              Sign Up
-            </Link>
-          )}
-        </div>
-      </section>
+      <section className="bg-gradient-to-r from-blue-400 to-blue-900 text-white rounded-lg p-8 text-center shadow-lg">
+    <h1 className="text-4xl font-bold mb-4">Welcome to The Book Bay</h1>
+    <p className="text-xl mb-6 max-w-3xl mx-auto">
+      Explore, discover, and shop your favorite books with our fresh collection and updated prices—
+      <strong><em>your next great read is just a click away!</em></strong>
+    </p>
+    <div className="flex flex-wrap justify-center gap-4">
+    <Link
+      href="/books"
+      className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold py-2 px-4 rounded transition-all"
+    >
+      Browse Books
+    </Link>
+
+      {!isAuthenticated && (
+        <Link
+          href="/auth/register"
+          className="bg-white text-blue-800 font-medium py-2 px-4 rounded hover:bg-gray-100 transition-colors"
+        >
+          Sign Up
+        </Link>
+      )}
+    </div>
+  </section>
       
       <section>
         <div className="flex items-center justify-between mb-6">

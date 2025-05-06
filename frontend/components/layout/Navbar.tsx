@@ -111,9 +111,12 @@ const AuthLinks = memo(({ isMobile = false }: { isMobile?: boolean }) => {
         <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 py-2">
           Login
         </Link>
-        <Link href="/auth/register" className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 inline-block">
-          Sign Up
+        <Link
+            href="/auth/register"
+             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all"
+        >Sign Up
         </Link>
+
       </>
     );
   }
@@ -123,7 +126,7 @@ const AuthLinks = memo(({ isMobile = false }: { isMobile?: boolean }) => {
       <Link href="/auth/login" className="text-gray-700 hover:text-primary-600">
         Login
       </Link>
-      <Link href="/auth/register" className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700">
+      <Link href="/auth/register" className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all">
         Sign Up
       </Link>
     </div>

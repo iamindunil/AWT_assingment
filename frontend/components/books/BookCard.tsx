@@ -73,7 +73,7 @@ export default function BookCard({ book }: BookCardProps) {
           
           <button
             onClick={handleAddToCart}
-            className="flex items-center space-x-1 bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700 transition-colors"
+            className="flex items-center space-x-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-4 py-2 rounded transition-all"
             disabled={book.stock <= 0}
           >
             <FaShoppingCart size={14} />
